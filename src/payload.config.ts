@@ -30,19 +30,13 @@ type CloudflareGlobal = typeof globalThis & {
 }
 
 const d1Binding = (globalThis as CloudflareGlobal).cloudflare?.env?.D1
-const envDatabaseURL = process.env.DATABASE_URI
-
-if (!d1Binding && !envDatabaseURL) {
-  throw new Error(
-    'No database configured. Provide Cloudflare D1 binding "D1" or set DATABASE_URI for the local SQLite adapter.',
-  )
-}
+const envDatabaseURL = process.env.DATABASE_URI ?? 'file:payload.db'
 
 const dbAdapter = d1Binding
   ? sqliteD1Adapter({ binding: d1Binding })
   : sqliteAdapter({
       client: {
-        url: envDatabaseURL ?? 'file:payload.db',
+        url: envDatabaseURL,
       },
     })
 
