@@ -1,0 +1,7 @@
+name = "payload-worker"
+compatibility_date = "2025-27-10"
+
+[[d1_databases]]
+binding = "D1"
+database_name = "test-payload"
+database_id = "ab146cdf-e00e-4408-b526-bb27d45ff3f6"

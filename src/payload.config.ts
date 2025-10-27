@@ -20,6 +20,20 @@ import { getServerSideURL } from './utilities/getURL'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+type CloudflareGlobal = typeof globalThis & {
+  cloudflare?: {
+    env?: {
+      D1?: Parameters<typeof sqliteD1Adapter>[0]['binding']
+    }
+  }
+}
+
+const d1Binding = (globalThis as CloudflareGlobal).cloudflare?.env?.D1
+
+if (!d1Binding) {
+  throw new Error('Cloudflare D1 binding "D1" is missing. Ensure this code runs within a Cloudflare environment.')
+}
+
 export default buildConfig({
   admin: {
     components: {
@@ -59,7 +73,7 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
+db: sqliteD1Adapter({ binding: d1Binding }),
   collections: [Pages, Posts, Media, Categories, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
