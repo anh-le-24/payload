@@ -1,5 +1,6 @@
 // storage-adapter-import-placeholder
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite'
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -29,12 +30,24 @@ type CloudflareGlobal = typeof globalThis & {
 }
 
 const d1Binding = (globalThis as CloudflareGlobal).cloudflare?.env?.D1
+const envDatabaseURL = process.env.DATABASE_URI
 
-if (!d1Binding) {
-  throw new Error('Cloudflare D1 binding "D1" is missing. Ensure this code runs within a Cloudflare environment.')
+if (!d1Binding && !envDatabaseURL) {
+  throw new Error(
+    'No database configured. Provide Cloudflare D1 binding "D1" or set DATABASE_URI for the local SQLite adapter.',
+  )
 }
 
+const dbAdapter = d1Binding
+  ? sqliteD1Adapter({ binding: d1Binding })
+  : sqliteAdapter({
+      client: {
+        url: envDatabaseURL ?? 'file:payload.db',
+      },
+    })
+
 export default buildConfig({
+  serverURL: getServerSideURL(),
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -73,7 +86,7 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-db: sqliteD1Adapter({ binding: d1Binding }),
+  db: dbAdapter,
   collections: [Pages, Posts, Media, Categories, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],

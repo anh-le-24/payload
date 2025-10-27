@@ -1,5 +1,5 @@
 name = "payload-worker"
-compatibility_date = "2025-27-10"
+compatibility_date = "2025-10-27"
 
 [[d1_databases]]
 binding = "D1"
